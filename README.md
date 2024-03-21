@@ -167,3 +167,94 @@ controller.spec.ts
 [DELETE] http://localhost:3000/posts/8 // Body 사용
 
 - 8이라는 ID를 갖고있는 Post를 삭제한다.
+
+## 의존성 주입과 제어의 역전
+
+### 의존성 주입
+
+```js
+  class B {}
+
+  class A {
+    constructor(instance: B);
+  }
+```
+
+프레임워크가 클래스 B를 자동으로 생성해서 constructor에다 입력을 해줌.
+클래스 A를 사용할 때 클래스 B의 인스턴스가 필요하기 때문에 클래스 A는 클래스 B에 의존하고있기 때문에 의존하는 값을 주입하여준다.
+
+### 제어의 역전
+
+```js
+  class B {}
+
+  class A {
+    constructor(instance: B)
+  }
+
+  class C {
+    constructor(instance: B)
+  }
+```
+
+원래는 A와 C가 B에 의존성이 있다하면 B를 직접 생성해서 넣어준다.
+nestjs에서는 B를 생성하고 삭제하고 주입해주는 과정을 프레임워크가 함.
+
+## SQL 기본기
+
+SQL을 알아야 지속가능한 데이터를 저장하는 방법을 알 수 있다.
+
+변수는 왜 초기화 되는가? 하드웨어적 문제
+코드는 ssd에 저장된다. (영구적 데이터)
+코드를 실행하면 RAM으로 올라감 (휘발성 데이터)
+
+왜 RAM을 사용하나? RAM이 훨씬 속도가 빠름.
+
+### Select - 데이터 선택하기
+
+SELECT {column} FROM {table}
+
+SELECT id, author, title, content, likeCount, commentCount FROM posts
+post 테이블로부터 id, author, title, content, likeCount, commentCount 컬럼들을 전부 다 선택한다.
+
+### Update - 데이터 업데이트하기
+
+UPDATE {table} SET {column} WHERE {condition}
+
+UPDATE posts SET likeCount = 0 WHERE id = 3
+id가 3인 경우만 likeCount를 0으로 바꾼다.
+
+### Delete - 데이터 삭제하기
+
+DELETE FROM {table} WHERE {condition}
+
+DELETE FROM posts WHERE author = "test"
+작성자가 test인 데이터를 삭제해라
+
+### Insert - 새로운 데이터 추가하기
+
+INSERT INTO {table} {column1, column2, ...} VALUES {valu1, value2, ...}
+
+INSERT INTO posts (id, author, ...) VALUES (7, "test", ...)
+
+## Docker
+
+모든 프로그램은 여러개의 서버에서 구동을 할 수 있어야한다.
+
+프로젝트를 보내주면 누군가의 PC에서는 실행이 안된다~ -> 잉? 제 컴퓨터에서는 잘 되는데요?
+
+멀티플랫폼 - windows, macos, linux 각각 다른회사이고 서로 호환되게 만들지를 않는다.
+
+### Dockerfile
+
+1. nodejs를 설치한다
+2. yarn을 설치한다
+3. nestjs cli를 설치한다
+4. postgresql을 설치한다
+5. mongoDB를 설치한다
+6. 각종 환경변수 작업을 해준다
+   와 같은 일련의 과정을 한 파일에 작성
+
+### Docker Compose
+
+하나의 기기에서 여러개의 컨테이너를 돌리는 기술
