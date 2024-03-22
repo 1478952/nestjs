@@ -258,3 +258,19 @@ INSERT INTO posts (id, author, ...) VALUES (7, "test", ...)
 ### Docker Compose
 
 하나의 기기에서 여러개의 컨테이너를 돌리는 기술
+
+## Realationship
+
+### 1 to 1
+
+row 하나당 row 하나를 연동하는것
+
+### 1 to n
+
+row 하나당 여러개의 row와 연동
+
+### n to n
+
+게시글 과 태그의 관계
+
+게시글 테이블과 태그 테이블이 있으며 중간 테이블을 구성해야한다. 단순하게 게시글 아이디와 태그아이디만을 가지고 있는 테이블
