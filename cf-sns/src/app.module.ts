@@ -6,6 +6,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { PostsModel } from "./posts/entities/post.entity";
 import { UsersModule } from "./users/users.module";
 import { UsersModel } from "./users/entities/users.entity";
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   // 다른 모듈을 불러올 때 사용.
@@ -23,6 +24,7 @@ import { UsersModel } from "./users/entities/users.entity";
       synchronize: true, // nestjs에서 작성하는 typeorm 코드와 db의 싱크를 맞출거냐? 개발환경에선 true 프로덕션에서는 false
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

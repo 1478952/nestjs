@@ -274,3 +274,95 @@ row 하나당 여러개의 row와 연동
 게시글 과 태그의 관계
 
 게시글 테이블과 태그 테이블이 있으며 중간 테이블을 구성해야한다. 단순하게 게시글 아이디와 태그아이디만을 가지고 있는 테이블
+
+## SQL Relations
+
+### RDB
+
+Relational Database (관계형 데이터베이스)
+SQL을 쓰는 데이터베이스를 주로 뜻함
+
+## Session
+
+유저의 정보를 데이터베이스에 저장하고 상태를 유지하는 도구
+
+- Session은 특수한 ID 값으로 구성되어있다.
+- Session은 서버에서 생성되며 클라이언트에서 쿠키를 통해 저장된다.
+- 클라이언트에서 요청을 보낼때 Session ID를 같이 보내면 현재 요청을 보내는 사용자가 누구인지 서버에서 알 수 있다.
+  (요청마다 매번 아이디와 비밀번호를 물어볼 필요 없음)
+- Session ID는 데이터베이스에 저장되기때문에 요청이 있을때마다 매번 데이터베이스를 확인해야한다.
+- 서버에서 데이터가 저장되기 때문에 클라이언트에 사용자 정보가 노출될 위험이 없다.
+- 데이터베이스에 Session을 저장해야 하기 때문에 Horizontal Scaling이 어렵다.
+
+## JWT Token
+
+유저의 정보를 Base 64로 인코딩된 String 값에 저장하는 도구
+
+- JWT Token은 Header, Payload, Signature로 구성되어 있으며 Base 64로 인코딩 되어있다.
+- JWT Token은 서버에서 생성되며 클라이언트에서 저장된다.
+- 클라이언트에서 요청을 보낼때 JWT Token ID를 같이 보내면 현재 요청을 보내는 사용자가 누구인지 서버에서 알 수 있다.
+  (요청마다 매번 아이디와 비밀번호를 물어볼 필요 없음)
+- JWT Token은 데이터베이스에 저장되지않고 Signature값을 이용해서 검증할 수 있다. 그래서 검증할때마다
+  데이터베이슬르 매번 들여다볼 필요가 없다.
+- 정보가 모두 토큰에 담겨있고 클라이언트에서 토큰을 저장하기 때문에 정보 유출의 위험이 있다.
+- 데이터베이스가 필요없기 때문에 Horizontal Scaling이 쉽다.
+
+## Session vs JWT Token
+
+### 유저의 정보를 어디에서 저장하고 있는가?
+
+- Session
+  - 서버
+- JWT Token
+  - 클라이언트
+
+### 클라이언트에서 서버로 보내는 정보는?
+
+- Session
+  - 쿠키
+- JWT Token
+  - 토큰
+
+### 유저 정보를 가져올 때 데이터베이스를 확인해야하는가?
+
+- Session
+  - 확인필요
+- JWT Token
+  - 토큰의 Payload에 들어있는 정보만 필요할경우 확인 불필요
+
+### 클라이언트에서 인증 정보를 읽을 수 있는가?
+
+- Session
+  - 불가능
+- JWT Token
+  - 가능
+
+### Horizontal Scaling이 쉬운가?
+
+- Session
+  - 어려움
+- JWT Token
+  - 쉬움
+
+## Refresh Token & Access Token
+
+- 두 토큰 모두 JWT 기반이다.
+- Access Token은 API요청을 할 때 검증용 토큰으로 사용된다. 즉, 인증이 필요한 API를 사용할때는
+  꼭 Access Token을 Header에 넣어서 보내야한다.
+  예) 유저 정보 수정, 회사 채용공고 지원 인원 확인 등.
+- Refresh Token은 Access Token을 추가로 발급할 때 사용된다. Access Token을 새로고침
+  (Refresh)하는 기능이 있기 때문에 Refresh Token이라고 부른다.
+- Access Token은 유효기간이 짧고 Refresh Token은 유효기간이 길다.
+- 자주 노출되는 Access Token은 유효기간을 짧게해서 Token이 탈취돼도 해커가 오래 사용하지 못하도록 방지할 수 있다.
+- 상대적으로 노출이 적은 Refresh Token의 경우 Access Token을 새로 발급받을때만 사용되기 때문에 탈취 가능성이 적다.
+
+## Encryption
+
+### Algorithm
+
+- bcrypt
+  - 같은조건에서 항상 같은 문자를 뱉어낸다.
+  - 일부러 느리게 작동되도록 설계가 되어있다.
+    - 딕셔너리 어택(해시 매칭 테이블) 방지
+- md5
+- sha1

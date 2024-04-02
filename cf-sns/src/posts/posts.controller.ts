@@ -33,11 +33,12 @@ export class PostsController {
   //    post를 생성한다.
   @Post()
   postPosts(
-    @Body("author") author: string,
+    @Body("authorId") authoId: number,
     @Body("title") title: string,
     @Body("content") content: string
   ) {
-    return this.postsService.createPost(author, title, content);
+    console.log("asdfasfasdfasdf", authoId, title, content);
+    return this.postsService.createPost(+authoId, title, content);
   }
 
   // 4) PUT /posts/:id
@@ -45,11 +46,10 @@ export class PostsController {
   @Put(":id")
   putPost(
     @Param("id") id: string,
-    @Body("author") author?: string,
     @Body("title") title?: string,
     @Body("content") content?: string
   ) {
-    return this.postsService.updatePost(+id, author, title, content);
+    return this.postsService.updatePost(+id, title, content);
   }
 
   // 5) DELETE /posts/:id
