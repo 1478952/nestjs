@@ -1,3 +1,7 @@
+## NestJS 구조
+
+Request -> Middleware -> Guard -> Interceptor -> Pipe -> [Controller, Service, Repository] -> ExceptionFilter -> Interceptor -> Response
+
 ## 백엔드엔지니어란?
 
 서버사이드 프로그램을 디자인하고, 개발하고, 유지보수 하는 역할을 한다.

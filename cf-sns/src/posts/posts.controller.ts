@@ -8,8 +8,13 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Request,
+  UseGuards,
 } from "@nestjs/common";
 import { PostsService } from "./posts.service";
+import { AccessTokenGuard } from "src/auth/guard/bearer-token.guard";
+import { User } from "src/users/decorator/user.decorator";
+import { UsersModel } from "src/users/entities/users.entity";
 
 // 가장 맨 앞에서 요청을 받는 역할. 요청을 받는역할에 최적화 되어 있어야 한다.
 @Controller("posts")
@@ -34,13 +39,13 @@ export class PostsController {
   // 3) POST /posts
   //    post를 생성한다.
   @Post()
+  @UseGuards(AccessTokenGuard)
   postPosts(
-    @Body("authorId") authoId: number,
+    @User("id") userId,
     @Body("title") title: string,
-    @Body("content") content: string,
-    @Body("isPublic", new DefaultValuePipe(true)) isPublic: boolean
+    @Body("content") content: string
   ) {
-    return this.postsService.createPost(+authoId, title, content);
+    return this.postsService.createPost(+userId, title, content);
   }
 
   // 4) PUT /posts/:id
