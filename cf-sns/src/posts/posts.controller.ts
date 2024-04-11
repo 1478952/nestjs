@@ -6,15 +6,16 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
-  Request,
   UseGuards,
 } from "@nestjs/common";
 import { PostsService } from "./posts.service";
 import { AccessTokenGuard } from "src/auth/guard/bearer-token.guard";
 import { User } from "src/users/decorator/user.decorator";
 import { UsersModel } from "src/users/entities/users.entity";
+import { CreatePostDto } from "./dto/create-post.dto";
+import { UpdatePostDto } from "./dto/update-post.dto";
 
 // 가장 맨 앞에서 요청을 받는 역할. 요청을 받는역할에 최적화 되어 있어야 한다.
 @Controller("posts")
@@ -42,21 +43,23 @@ export class PostsController {
   @UseGuards(AccessTokenGuard)
   postPosts(
     @User("id") userId,
-    @Body("title") title: string,
-    @Body("content") content: string
+    // @Body("title") title: string,
+    // @Body("content") content: string
+    @Body() body: CreatePostDto
   ) {
-    return this.postsService.createPost(+userId, title, content);
+    return this.postsService.createPost(+userId, body);
   }
 
-  // 4) PUT /posts/:id
+  // 4) PATCH /posts/:id
   //    id에 해당되는 POST를 변경한다.
-  @Put(":id")
-  putPost(
+  @Patch(":id")
+  patchPost(
     @Param("id", ParseIntPipe) id: number,
-    @Body("title") title?: string,
-    @Body("content") content?: string
+    // @Body("title") title?: string,
+    // @Body("content") content?: string
+    @Body() body: UpdatePostDto
   ) {
-    return this.postsService.updatePost(id, title, content);
+    return this.postsService.updatePost(id, body);
   }
 
   // 5) DELETE /posts/:id
