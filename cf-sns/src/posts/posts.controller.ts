@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { PostsService } from "./posts.service";
@@ -16,6 +17,7 @@ import { User } from "src/users/decorator/user.decorator";
 import { UsersModel } from "src/users/entities/users.entity";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
+import { PaginatePostDto } from "./dto/paginate-post.dto";
 
 // 가장 맨 앞에서 요청을 받는 역할. 요청을 받는역할에 최적화 되어 있어야 한다.
 @Controller("posts")
@@ -25,8 +27,9 @@ export class PostsController {
   // 1) GET /posts
   //    모든 post를 다 가져온다.
   @Get()
-  getPosts() {
-    return this.postsService.getAllPost();
+  getPosts(@Query() query: PaginatePostDto) {
+    // return this.postsService.getAllPost();
+    return this.postsService.paginatePosts(query);
   }
 
   // 2) GET /posts/:id
@@ -35,6 +38,14 @@ export class PostsController {
   @Get(":id")
   getPost(@Param("id", ParseIntPipe) id: number) {
     return this.postsService.getPostById(id);
+  }
+
+  // POST /posts/random
+  @Post("random")
+  @UseGuards(AccessTokenGuard)
+  async postPostsRandom(@User() user: UsersModel) {
+    await this.postsService.generatePosts(user.id);
+    return true;
   }
 
   // 3) POST /posts
