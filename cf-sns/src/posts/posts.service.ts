@@ -37,14 +37,13 @@ export class PostsService {
     }
   }
 
-  // 1) 오름차 순으로 정렬하는 pagination만 구현한다.
-  async paginatePosts(paginatePostDto: PaginatePostDto) {
+  async cursorPaginatePosts(paginatePostDto: PaginatePostDto) {
     const where: FindOptionsWhere<PostsModel> = {};
 
-    if (paginatePostDto.where__id_less_than) {
-      where.id = LessThan(paginatePostDto.where__id_less_than ?? 0);
-    } else if (paginatePostDto.where__id_more_than) {
-      where.id = MoreThan(paginatePostDto.where__id_more_than ?? 0);
+    if (paginatePostDto.where__id__less_than) {
+      where.id = LessThan(paginatePostDto.where__id__less_than ?? 0);
+    } else if (paginatePostDto.where__id__more_than) {
+      where.id = MoreThan(paginatePostDto.where__id__more_than ?? 0);
     }
 
     // 1, 2, 3, 4, 5
@@ -72,11 +71,14 @@ export class PostsService {
        * 키값에 해당되는 밸류가 존재하면
        * param에 그대로 붙여넣는다.
        *
-       * 단, where__id_more_than 값만 lastItem의 마지막 값으로 넣어준다.
+       * 단, where__id__more_than 값만 lastItem의 마지막 값으로 넣어준다.
        */
       for (const key of Object.keys(paginatePostDto)) {
         if (paginatePostDto[key]) {
-          if (key !== "where__id_more_than" && key !== "where_id_less_than") {
+          if (
+            key !== "where__id__more_than" &&
+            key !== "where__id__less_than"
+          ) {
             nextUrl.searchParams.append(key, paginatePostDto[key]);
           }
         }
@@ -85,9 +87,9 @@ export class PostsService {
       let key = null;
 
       if (paginatePostDto.order__createdAt === "ASC") {
-        key = "where__id_more_than";
+        key = "where__id__more_than";
       } else {
-        key = "where__id_less_than";
+        key = "where__id__less_than";
       }
       nextUrl.searchParams.append(key, lastItem.id.toString());
     }
@@ -111,6 +113,37 @@ export class PostsService {
       },
       next: nextUrl?.toString() ?? null,
     };
+  }
+
+  async pagePaginatePosts(paginatePostDto: PaginatePostDto) {
+    /**
+     * data: Data[],
+     * total: number,
+     *
+     * [1] [2] [3] [4]
+     */
+
+    const posts = await this.postsRepository.findAndCount({
+      skip: paginatePostDto.take * (paginatePostDto.page - 1),
+      take: paginatePostDto.take,
+      order: {
+        createdAt: paginatePostDto.order__createdAt,
+      },
+    });
+
+    return {
+      data: posts[0],
+      total: posts[1],
+    };
+  }
+
+  // 1) 오름차 순으로 정렬하는 pagination만 구현한다.
+  async paginatePosts(paginatePostDto: PaginatePostDto) {
+    if (paginatePostDto.page) {
+      return this.pagePaginatePosts(paginatePostDto);
+    } else {
+      return this.cursorPaginatePosts(paginatePostDto);
+    }
   }
 
   async getPostById(id: number) {
