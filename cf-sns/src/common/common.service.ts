@@ -36,7 +36,19 @@ export class CommonService {
     paginateDto: BasePaginationDto,
     repository: Repository<T>,
     overrideFindOptions: FindManyOptions<T> = {}
-  ) {}
+  ) {
+    const findOptions = this.composeFindOptions<T>(paginateDto);
+
+    const [data, count] = await repository.findAndCount({
+      ...findOptions,
+      ...overrideFindOptions,
+    });
+
+    return {
+      data,
+      total: count,
+    };
+  }
 
   private async cursorPaginate<T extends BaseModel>(
     paginateDto: BasePaginationDto,
@@ -63,22 +75,27 @@ export class CommonService {
 
     const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/${path}`);
 
-    for (const key of Object.keys(paginateDto)) {
-      if (paginateDto[key]) {
-        if (key !== "where__id__more_than" && key !== "where__id__less_than") {
-          nextUrl.searchParams.append(key, paginateDto[key]);
+    if (nextUrl) {
+      for (const key of Object.keys(paginateDto)) {
+        if (paginateDto[key]) {
+          if (
+            key !== "where__id__more_than" &&
+            key !== "where__id__less_than"
+          ) {
+            nextUrl.searchParams.append(key, paginateDto[key]);
+          }
         }
       }
-    }
 
-    let key = null;
+      let key = null;
 
-    if (paginateDto.order__createdAt === "ASC") {
-      key = "where__id__more_than";
-    } else {
-      key = "where__id__less_than";
+      if (paginateDto.order__createdAt === "ASC") {
+        key = "where__id__more_than";
+      } else {
+        key = "where__id__less_than";
+      }
+      nextUrl.searchParams.append(key, lastItem.id.toString());
     }
-    nextUrl.searchParams.append(key, lastItem.id.toString());
 
     return {
       data: results,
@@ -220,7 +237,11 @@ export class CommonService {
       // } else {
       //   options[field] = FILTER_MAPPER[operator](value);
       // }
-      options[field] = FILTER_MAPPER[operator](value);
+      if (operator === "i_like") {
+        options[field] = FILTER_MAPPER[operator](`%${value}%`);
+      } else {
+        options[field] = FILTER_MAPPER[operator](value);
+      }
     }
 
     return options;

@@ -10,6 +10,7 @@ import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
 import { PaginatePostDto } from "./dto/paginate-post.dto";
 import { HOST, PROTOCOL } from "src/common/const/env.const";
+import { CommonService } from "src/common/common.service";
 
 // controller에서 사용할 로직관련 함수 정의
 // 주입할 수 있다.해당 태그를 해줘야지만 프로바이더로 사용할 수 있다.
@@ -17,7 +18,8 @@ import { HOST, PROTOCOL } from "src/common/const/env.const";
 export class PostsService {
   constructor(
     @InjectRepository(PostsModel) // 필수로 넣어주어야한다. 모델을 주입하는것.
-    private readonly postsRepository: Repository<PostsModel> // 레포지토리를 사용하는 모든 함수는 비동기이다.
+    private readonly postsRepository: Repository<PostsModel>, // 레포지토리를 사용하는 모든 함수는 비동기이다.
+    private readonly commonServices: CommonService
   ) {}
 
   async getAllPost() {
@@ -139,11 +141,17 @@ export class PostsService {
 
   // 1) 오름차 순으로 정렬하는 pagination만 구현한다.
   async paginatePosts(paginatePostDto: PaginatePostDto) {
-    if (paginatePostDto.page) {
-      return this.pagePaginatePosts(paginatePostDto);
-    } else {
-      return this.cursorPaginatePosts(paginatePostDto);
-    }
+    return this.commonServices.paginate(
+      paginatePostDto,
+      this.postsRepository,
+      {},
+      "posts"
+    );
+    // if (paginatePostDto.page) {
+    //   return this.pagePaginatePosts(paginatePostDto);
+    // } else {
+    //   return this.cursorPaginatePosts(paginatePostDto);
+    // }
   }
 
   async getPostById(id: number) {
