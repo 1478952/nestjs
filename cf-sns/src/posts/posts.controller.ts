@@ -9,7 +9,9 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { PostsService } from "./posts.service";
 import { AccessTokenGuard } from "src/auth/guard/bearer-token.guard";
@@ -18,6 +20,7 @@ import { UsersModel } from "src/users/entities/users.entity";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
 import { PaginatePostDto } from "./dto/paginate-post.dto";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 // 가장 맨 앞에서 요청을 받는 역할. 요청을 받는역할에 최적화 되어 있어야 한다.
 @Controller("posts")
@@ -52,13 +55,15 @@ export class PostsController {
   //    post를 생성한다.
   @Post()
   @UseGuards(AccessTokenGuard)
+  @UseInterceptors(FileInterceptor("image"))
   postPosts(
     @User("id") userId,
     // @Body("title") title: string,
     // @Body("content") content: string
-    @Body() body: CreatePostDto
+    @Body() body: CreatePostDto,
+    @UploadedFile() file?: Express.Multer.File
   ) {
-    return this.postsService.createPost(+userId, body);
+    return this.postsService.createPost(+userId, body, file?.filename);
   }
 
   // 4) PATCH /posts/:id

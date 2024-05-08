@@ -11,6 +11,8 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true, // class-validator를 사용시 임의로 변환되는 것을 허용
       },
+      whitelist: true, // validator가 validation decorator가 적용되어 있지않으면 거부함.
+      forbidNonWhitelisted: true, // 정의되어 있지 않은 decorator를 전송하면 에러를 던진다.
     })
   );
 

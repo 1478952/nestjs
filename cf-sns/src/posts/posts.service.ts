@@ -9,8 +9,12 @@ import { PostsModel } from "./entities/post.entity";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
 import { PaginatePostDto } from "./dto/paginate-post.dto";
-import { HOST, PROTOCOL } from "src/common/const/env.const";
 import { CommonService } from "src/common/common.service";
+import { ConfigService } from "@nestjs/config";
+import {
+  ENV_HOST_KEY,
+  ENV_PROTOCOL_KEY,
+} from "src/common/const/env-keys.const";
 
 // controller에서 사용할 로직관련 함수 정의
 // 주입할 수 있다.해당 태그를 해줘야지만 프로바이더로 사용할 수 있다.
@@ -19,7 +23,8 @@ export class PostsService {
   constructor(
     @InjectRepository(PostsModel) // 필수로 넣어주어야한다. 모델을 주입하는것.
     private readonly postsRepository: Repository<PostsModel>, // 레포지토리를 사용하는 모든 함수는 비동기이다.
-    private readonly commonServices: CommonService
+    private readonly commonServices: CommonService,
+    private readonly configServices: ConfigService
   ) {}
 
   async getAllPost() {
@@ -65,7 +70,10 @@ export class PostsService {
         ? posts[posts.length - 1]
         : null;
 
-    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/posts`);
+    const protocol = this.configServices.get(ENV_PROTOCOL_KEY);
+    const host = this.configServices.get(ENV_HOST_KEY);
+
+    const nextUrl = lastItem && new URL(`${protocol}://${host}/posts`);
 
     if (nextUrl) {
       /**
@@ -144,7 +152,9 @@ export class PostsService {
     return this.commonServices.paginate(
       paginatePostDto,
       this.postsRepository,
-      {},
+      {
+        relations: ["author"],
+      },
       "posts"
     );
     // if (paginatePostDto.page) {
@@ -171,7 +181,7 @@ export class PostsService {
     return post;
   }
 
-  async createPost(authorId: number, postDto: CreatePostDto) {
+  async createPost(authorId: number, postDto: CreatePostDto, image?: string) {
     // 1) create -> 저장할 객체를 생성한다. db에 저장하는게 아니라 객체를 생성하는거기 때문에 동기로 이루어짐
     // 2) save -> 객체를 저장한다. (create 메서드에서 생성한 객체로)
 
@@ -182,6 +192,7 @@ export class PostsService {
       ...postDto,
       likeCount: 0,
       commentCount: 0,
+      image,
     });
 
     if (!authorId || !postDto.title || !postDto.content) {
