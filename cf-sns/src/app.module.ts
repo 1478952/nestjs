@@ -10,11 +10,21 @@ import { AuthModule } from "./auth/auth.module";
 import { CommonModule } from "./common/common.module";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { PUBLIC_FOLDER_PATH } from "./common/const/path.const";
+import { ImageModel } from "./common/entities/image.entity";
 
 @Module({
   // 다른 모듈을 불러올 때 사용.
   imports: [
     PostsModule,
+    ServeStaticModule.forRoot({
+      // 3b7e.jpg
+      // http://localhost:3000/public/posts/3b7e.jpg
+      // http://localhost:3000/posts/3b7e.jpg
+      rootPath: PUBLIC_FOLDER_PATH,
+      serveRoot: "/public",
+    }),
     ConfigModule.forRoot({
       envFilePath: ".env",
       isGlobal: true,
@@ -27,7 +37,7 @@ import { ConfigModule } from "@nestjs/config";
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [PostsModel, UsersModel], // 생성할 테이블 모델 자동으로 생성함
+      entities: [PostsModel, UsersModel, ImageModel], // 생성할 테이블 모델 자동으로 생성함
       synchronize: true, // nestjs에서 작성하는 typeorm 코드와 db의 싱크를 맞출거냐? 개발환경에선 true 프로덕션에서는 false
     }),
     UsersModule,

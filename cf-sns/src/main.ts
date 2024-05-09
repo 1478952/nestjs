@@ -1,6 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
+import { POST_IMAGE_PATH } from "./common/const/path.const";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

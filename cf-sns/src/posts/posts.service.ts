@@ -4,7 +4,13 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOptionsWhere, LessThan, MoreThan, Repository } from "typeorm";
+import {
+  FindOptionsWhere,
+  LessThan,
+  MoreThan,
+  QueryRunner,
+  Repository,
+} from "typeorm";
 import { PostsModel } from "./entities/post.entity";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
@@ -15,6 +21,12 @@ import {
   ENV_HOST_KEY,
   ENV_PROTOCOL_KEY,
 } from "src/common/const/env-keys.const";
+import { basename, join } from "path";
+import { POST_IMAGE_PATH, TEMP_FOLDER_PATH } from "src/common/const/path.const";
+import { promises } from "fs";
+import { CreatePostImageDto } from "./image/dto/create-image.dto";
+import { ImageModel } from "src/common/entities/image.entity";
+import { DEFAULT_POST_FIND_OPTIONS } from "./const/defalut-post-find-options.const";
 
 // controller에서 사용할 로직관련 함수 정의
 // 주입할 수 있다.해당 태그를 해줘야지만 프로바이더로 사용할 수 있다.
@@ -23,15 +35,15 @@ export class PostsService {
   constructor(
     @InjectRepository(PostsModel) // 필수로 넣어주어야한다. 모델을 주입하는것.
     private readonly postsRepository: Repository<PostsModel>, // 레포지토리를 사용하는 모든 함수는 비동기이다.
+    @InjectRepository(ImageModel)
+    private readonly imageRepository: Repository<ImageModel>,
     private readonly commonServices: CommonService,
     private readonly configServices: ConfigService
   ) {}
 
   async getAllPost() {
     return this.postsRepository.find({
-      relations: {
-        author: true,
-      },
+      ...DEFAULT_POST_FIND_OPTIONS,
     });
   }
 
@@ -40,6 +52,7 @@ export class PostsService {
       await this.createPost(userId, {
         title: `test title ${i}`,
         content: `test content ${i}`,
+        images: [],
       });
     }
   }
@@ -152,9 +165,7 @@ export class PostsService {
     return this.commonServices.paginate(
       paginatePostDto,
       this.postsRepository,
-      {
-        relations: ["author"],
-      },
+      DEFAULT_POST_FIND_OPTIONS,
       "posts"
     );
     // if (paginatePostDto.page) {
@@ -166,11 +177,9 @@ export class PostsService {
 
   async getPostById(id: number) {
     const post = await this.postsRepository.findOne({
+      ...DEFAULT_POST_FIND_OPTIONS,
       where: {
         id: id,
-      },
-      relations: {
-        author: true,
       },
     });
 
@@ -181,25 +190,32 @@ export class PostsService {
     return post;
   }
 
-  async createPost(authorId: number, postDto: CreatePostDto, image?: string) {
+  getRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<PostsModel>(PostsModel)
+      : this.postsRepository;
+  }
+
+  async createPost(authorId: number, postDto: CreatePostDto, qr?: QueryRunner) {
     // 1) create -> 저장할 객체를 생성한다. db에 저장하는게 아니라 객체를 생성하는거기 때문에 동기로 이루어짐
     // 2) save -> 객체를 저장한다. (create 메서드에서 생성한 객체로)
+    const repository = this.getRepository(qr);
 
-    const post = this.postsRepository.create({
+    const post = repository.create({
       author: {
         id: authorId,
       },
       ...postDto,
+      images: [],
       likeCount: 0,
       commentCount: 0,
-      image,
     });
 
     if (!authorId || !postDto.title || !postDto.content) {
       throw new BadRequestException();
     }
 
-    const newPost = await this.postsRepository.save(post);
+    const newPost = await repository.save(post);
 
     return newPost;
   }

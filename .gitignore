@@ -4,3 +4,5 @@ node_modules
 build
 postgres-data
 .env
+
+cf-sns/public/posts
