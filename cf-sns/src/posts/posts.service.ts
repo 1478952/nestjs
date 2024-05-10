@@ -35,8 +35,6 @@ export class PostsService {
   constructor(
     @InjectRepository(PostsModel) // 필수로 넣어주어야한다. 모델을 주입하는것.
     private readonly postsRepository: Repository<PostsModel>, // 레포지토리를 사용하는 모든 함수는 비동기이다.
-    @InjectRepository(ImageModel)
-    private readonly imageRepository: Repository<ImageModel>,
     private readonly commonServices: CommonService,
     private readonly configServices: ConfigService
   ) {}
@@ -175,8 +173,10 @@ export class PostsService {
     // }
   }
 
-  async getPostById(id: number) {
-    const post = await this.postsRepository.findOne({
+  async getPostById(id: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    const post = await repository.findOne({
       ...DEFAULT_POST_FIND_OPTIONS,
       where: {
         id: id,
