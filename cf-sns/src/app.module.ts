@@ -20,6 +20,8 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { PUBLIC_FOLDER_PATH } from "./common/const/path.const";
 import { ImageModel } from "./common/entities/image.entity";
 import { LogMiddleware } from "./common/middleware/log.middleware";
+import { ChatsModule } from "./chats/chats.module";
+import { ChatsModel } from "./chats/entities/chats.entity";
 
 @Module({
   // 다른 모듈을 불러올 때 사용.
@@ -44,12 +46,13 @@ import { LogMiddleware } from "./common/middleware/log.middleware";
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [PostsModel, UsersModel, ImageModel], // 생성할 테이블 모델 자동으로 생성함
+      entities: [PostsModel, UsersModel, ImageModel, ChatsModel], // 생성할 테이블 모델 자동으로 생성함
       synchronize: true, // nestjs에서 작성하는 typeorm 코드와 db의 싱크를 맞출거냐? 개발환경에선 true 프로덕션에서는 false
     }),
     UsersModule,
     AuthModule,
     CommonModule,
+    ChatsModule,
   ],
   controllers: [AppController],
   providers: [

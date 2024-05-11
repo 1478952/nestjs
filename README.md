@@ -442,3 +442,141 @@ secret key와 같은 중요 정보들은 github과 같은곳에 올라가지 않
 - 서버 과부하 : 이미지를 선택할때마다 업로드를 진행하기 때문에 더욱 많은 요청을 받게 된다. 특히나 이미지를 선택한 후 삭제해서 실제 포스트에 포함하지 않을 경우 서버 리소스만 낭비한다.
 - 엔드포인트 관리 : 공통된 이미지 업로드 엔드포인트를 하나 만들어서 모든 이미지 업로드를 한 번에 관리 할 수 있다.
 - 파일 관리 : 이미지를 선택하면 바로 업로드를 진행하기 때문에 선택한 이미지를 삭제하거나 변경하면 잉여 파일이 생긴다. 잉여 파일들은 주기적으로 삭제 해줘야한다.
+
+## Webscoket
+
+채팅, 주식, 가상화폐 등 새로고침하지 않아도 서버에서 데이터를 던져줌 (리얼타임 서비스)
+기본적인 http 통신은 단일방향 통신이다 클라이언트에서 요청한것에 대한 응답만 던져줄 수 있다.
+websocket을 사용하게되면 요청과 응답의 경계가 모호해진다. 양방향 통신이 가능해짐 연결 파이프가 생긴다.
+
+### Socket IO
+
+SockerIo는 Websocket 프로토콜을 사용해서 만든 low-latency(낮은 지연시간), bidirectional(양방향 소통), event based(이벤트 기반)으로 클라이언트와 서버가 통신 할 수 있게 해주는 기능이다.
+SockerIo(Nest js) === Websocket(express)
+
+#### 예시
+
+- emit & on
+  - emit 은 전송
+  - on 은 받는부분
+
+```js 서버코드
+import { Server } from "socket.io";
+
+// Socker.IO 서버 생성하기
+const io = new Server(3000);
+
+// 클라이언트가 서버에 연결되면 실행되는 함수 정의하기
+// on 함수를 실행하면 특정 이벤트 (첫번째 파라미터)가
+// 있을때 콜백 함수를 실행 할 수 있으며
+// 해당 콜백 함수는 메세지를 첫번째 파라미터로 받는다.
+// connection 이벤트는 미리 정의된 이벤트로 "연결 됐을때" 실행된다.
+io.on("connection", (socket) => {
+  // 메세지 보내기
+  // 첫번째 파라미터는 이벤트 이름
+  // 두번째~이 후 무한 파라미터는 메세지
+  socket.emit("hello_from_server", "this is message from server");
+
+  // hello_from_client 이벤트 메세지 받기
+  socker.on("hello_from_client", (message) => {
+    // "this is message from client"
+    console.log(message);
+  });
+});
+```
+
+```js 클라이언트 코드
+import { io } from "socket.io-client";
+
+// Socket.IO 서버에 연결하기
+const socket = io("ws://localhost:3000");
+
+// "hello_from_client" 이벤트를 듣고 있는 소켓에 메세지 보내기
+socket.emit("hello_from_client", "this is message from client");
+
+// "hello_from_server" 이벤트로 메세지가 오면 함수 실행하기
+socket.on("hello_from_server", (message) => {
+  // this is message from server
+  console.log(message);
+});
+```
+
+- Acknowledgement
+  - 응답을 잘 받았다고 ok신호를 전달
+  - emit -> on -> emit
+
+```js 서버코드
+// "heelo" 룸에 "world"라는 메세지를 보낸다.
+// 세번째 파라미터는 콜백 함수로 acknowledgment가 오면 실행한다.
+socket.emit("hello", "world", (response) => {
+  // 수신 양호
+  console.log(response);
+});
+```
+
+```js 클라이언트코드
+// 첫번째 파라미터에 이벤트 이름을 입력하고
+// 두번째 파라미터에 메세지가 왔을때 실행할 함수를 입력한다.
+// 함수는 첫번째 파라미터로 메세지, 두번째 파라미터로
+// 수신 응답을 할 수 있는 콜백 함수가 주어진다.
+socket.on("hello", (message, callback) => {
+  // world
+  console.log(message);
+  callback("수신 양호");
+});
+```
+
+- Namespace & Room
+  - socket을 namespace로 분할하며 namespace안에는 room이 존재한다.
+
+```js 서버코드
+// of 를 이용하면 namespace를 정할 수 있다.
+// namespace는 일반적으로 라우트 형태를 따라 지정한다.
+const chatNamespace = io.of("/chat");
+
+// chatNamespace에 연결된 소켓만 아래 코드가 실행된다.
+chatNamespace.on("connection", (socket) => {
+  // 현재 연결된 socket을 room1에 연결한다.
+  // 이 room1은 /chat namespace에만 존재하는 romm이다.
+  socket.join("room1");
+  chatNamespace.to("room1").emit("hello", "world");
+});
+
+// /noti namespace를 생성한다.
+const notiNamespace = io.of("/noti");
+
+// /noti nameSpace에 연결된 소켓만 실행된다.
+notiNamespace.on("connection", (socket) => {
+  // 이 room1은 /chat namespace의 room1과 전혀 관련이 없다.
+  // 다른 namespace의 room1에는 들어갈 수 없다.
+  socket.join("room1");
+
+  // 역시나 /notio namespcae의 room1에만 메세지를 보낸다.
+  notiNamespace.to("room1").emit("hello", "kjw");
+});
+```
+
+```js 클라이언트 코드
+// 기본 namespace로 연결한다 -> /
+const socket = io("ws://localhost:3000");
+
+// chat namespace로 연결한다 -> /chat
+const chatSocket = io("ws://localhost:3000/chat");
+
+// noti namespace로 연결한다 -> /noti
+const notiSocket = io("ws://localhost:3000/noti");
+
+// client에서는 room을 정할 수 있는 기능이 없다.
+// room은 서버에서만 socket.join()을 실행해서 특정 룸에
+// 들어가도록 할 수 있다.
+```
+
+- emit & broadcast
+
+```js
+// 연결된 모든 socket들에 메세지를 보낸다.
+socket.emit("hello", "world");
+
+// 나 빼고 모두에게 메세지를 보낸다.
+socket.broadcast.emit("hello", "world");
+```

@@ -23,7 +23,7 @@ export class CommonService {
     overrideFindOptions: FindManyOptions<T> = {},
     path: string
   ) {
-    if (paginateDto.page) {
+    if (paginateDto?.page) {
       return this.pagePaginate(paginateDto, repository, overrideFindOptions);
     }
 
