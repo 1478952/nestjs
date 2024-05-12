@@ -13,6 +13,7 @@ import { stringValidationMessage } from "src/common/validation-message/string-va
 import { emailValidationMessage } from "src/common/validation-message/email-validation.message";
 import { Exclude, Expose } from "class-transformer";
 import { ChatsModel } from "src/chats/entities/chats.entity";
+import { MessagesModel } from "src/chats/messages/entities/messages.entity";
 
 @Entity()
 // @Exclude() 해당 클래스 전체를 보이지 않게 하고싶다.
@@ -92,4 +93,7 @@ export class UsersModel extends BaseModel {
   @ManyToMany(() => ChatsModel, (chats) => chats.users)
   @JoinTable()
   chats: ChatsModel[];
+
+  @OneToMany(() => MessagesModel, (message) => message.author)
+  messages: MessagesModel;
 }

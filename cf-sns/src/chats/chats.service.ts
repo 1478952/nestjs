@@ -15,7 +15,16 @@ export class ChatsService {
   ) {}
 
   paginateChats(dto: PaginateChatDto) {
-    return this.commonService.paginate(dto, this.chatsRepository, {}, "chats");
+    return this.commonService.paginate(
+      dto,
+      this.chatsRepository,
+      {
+        relations: {
+          users: true,
+        },
+      },
+      "chats"
+    );
   }
 
   async createChat(dto: CreateChatDto) {
@@ -32,5 +41,15 @@ export class ChatsService {
         id: chat.id,
       },
     });
+  }
+
+  async checkIfChatExists(chatId: number) {
+    const exists = await this.chatsRepository.exists({
+      where: {
+        id: chatId,
+      },
+    });
+
+    return exists;
   }
 }
