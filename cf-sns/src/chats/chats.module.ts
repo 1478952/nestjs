@@ -8,9 +8,15 @@ import { CommonService } from "src/common/common.service";
 import { ChatsMessagesService } from "./messages/messages.service";
 import { MessagesModel } from "./messages/entities/messages.entity";
 import { MessagesController } from "./messages/messages.controller";
+import { AuthModule } from "src/auth/auth.module";
+import { UsersModule } from "src/users/users.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ChatsModel, MessagesModel])],
+  imports: [
+    TypeOrmModule.forFeature([ChatsModel, MessagesModel]),
+    AuthModule,
+    UsersModule,
+  ],
   controllers: [ChatsController, MessagesController],
   providers: [ChatsGateway, ChatsService, CommonService, ChatsMessagesService],
 })
