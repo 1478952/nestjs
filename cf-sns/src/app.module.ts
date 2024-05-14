@@ -14,7 +14,7 @@ import { UsersModule } from "./users/users.module";
 import { UsersModel } from "./users/entities/users.entity";
 import { AuthModule } from "./auth/auth.module";
 import { CommonModule } from "./common/common.module";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { PUBLIC_FOLDER_PATH } from "./common/const/path.const";
@@ -25,6 +25,8 @@ import { ChatsModel } from "./chats/entities/chats.entity";
 import { MessagesModel } from "./chats/messages/entities/messages.entity";
 import { CommentsModule } from "./posts/comments/comments.module";
 import { CommentsModel } from "./posts/comments/entities/comments.entity";
+import { RolesGuard } from "./users/guard/roles.guard";
+import { AccessTokenGuard } from "./auth/guard/bearer-token.guard";
 
 @Module({
   // 다른 모듈을 불러올 때 사용.
@@ -79,6 +81,16 @@ import { CommentsModel } from "./posts/comments/entities/comments.entity";
        *
        * 현 프로젝트에서는 class-transformer Exclude 에서 사용
        */
+    },
+    {
+      // 기본값으로 전부 private router로 함.
+      provide: APP_GUARD,
+      useClass: AccessTokenGuard,
+    },
+    {
+      // RBAC
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

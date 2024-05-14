@@ -20,9 +20,11 @@ import { UpdatePostDto } from "./dto/update-post.dto";
 import { PaginatePostDto } from "./dto/paginate-post.dto";
 import { ImageModelType } from "src/common/entities/image.entity";
 import { PostImageService } from "./image/image.service";
-import { LogInterceptor } from "src/common/interceptor/log.interceptor";
 import { TransactionInterceptor } from "src/common/interceptor/transaction.interceptor";
 import { QueryRunner } from "src/common/decorator/query-runner.decorator";
+import { Roles } from "src/users/decorator/roles.decorator";
+import { RolesEnum } from "src/users/const/roles.const";
+import { IsPubblic } from "src/common/decorator/is-public.decorator";
 
 // 가장 맨 앞에서 요청을 받는 역할. 요청을 받는역할에 최적화 되어 있어야 한다.
 @Controller("posts")
@@ -35,6 +37,7 @@ export class PostsController {
   // 1) GET /posts
   //    모든 post를 다 가져온다.
   @Get()
+  @IsPubblic()
   // @UseInterceptors(LogInterceptor)
   async getPosts(@Query() query: PaginatePostDto) {
     // return this.postsService.getAllPost();
@@ -45,13 +48,13 @@ export class PostsController {
   //    id에 해당하는 post를 가져온다.
   //    예를 들어 id = 1 일 경우 id가 1인 포스트를 가져온다.
   @Get(":id")
+  @IsPubblic()
   getPost(@Param("id", ParseIntPipe) id: number) {
     return this.postsService.getPostById(id);
   }
 
   // POST /posts/random
   @Post("random")
-  @UseGuards(AccessTokenGuard)
   async postPostsRandom(@User() user: UsersModel) {
     await this.postsService.generatePosts(user.id);
     return true;
@@ -72,7 +75,6 @@ export class PostsController {
   // commit -> 저장
   // rollback -> 원상복구
   @Post()
-  @UseGuards(AccessTokenGuard)
   // @UseInterceptors(FileInterceptor("image"))
   @UseInterceptors(TransactionInterceptor)
   async postPosts(
@@ -117,7 +119,10 @@ export class PostsController {
   // 5) DELETE /posts/:id
   //    id에 해당되는 POST를 삭제한다.
   @Delete(":id")
+  @Roles(RolesEnum.AMDIN)
   deletePost(@Param("id", ParseIntPipe) id: number) {
     return this.postsService.deletePost(id);
   }
+
+  // RBAC -> Role Based Access Control 역할기반접근제어
 }
