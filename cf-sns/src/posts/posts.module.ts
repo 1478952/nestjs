@@ -31,5 +31,6 @@ import { LogMiddleware } from "src/common/middleware/log.middleware";
   controllers: [PostsController],
   // instance를 넣은게 아닌 class를 그대로 넣음 ioC 컨테이너가 자동으로 인스턴스화하고 관리함
   providers: [PostsService, PostImageService],
+  exports: [PostsService],
 })
 export class PostsModule {}

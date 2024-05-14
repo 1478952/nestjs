@@ -14,6 +14,7 @@ import { emailValidationMessage } from "src/common/validation-message/email-vali
 import { Exclude, Expose } from "class-transformer";
 import { ChatsModel } from "src/chats/entities/chats.entity";
 import { MessagesModel } from "src/chats/messages/entities/messages.entity";
+import { CommentsModel } from "src/posts/comments/entities/comments.entity";
 
 @Entity()
 // @Exclude() 해당 클래스 전체를 보이지 않게 하고싶다.
@@ -95,5 +96,8 @@ export class UsersModel extends BaseModel {
   chats: ChatsModel[];
 
   @OneToMany(() => MessagesModel, (message) => message.author)
-  messages: MessagesModel;
+  messages: MessagesModel[];
+
+  @OneToMany(() => CommentsModel, (comment) => comment.author)
+  comments: CommentsModel[];
 }
