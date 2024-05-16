@@ -27,6 +27,7 @@ import { CommentsModule } from "./posts/comments/comments.module";
 import { CommentsModel } from "./posts/comments/entities/comments.entity";
 import { RolesGuard } from "./users/guard/roles.guard";
 import { AccessTokenGuard } from "./auth/guard/bearer-token.guard";
+import { UserFollowersModel } from "./users/entities/user-followers.entity";
 
 @Module({
   // 다른 모듈을 불러올 때 사용.
@@ -58,6 +59,7 @@ import { AccessTokenGuard } from "./auth/guard/bearer-token.guard";
         ChatsModel,
         MessagesModel,
         CommentsModel,
+        UserFollowersModel,
       ], // 생성할 테이블 모델 자동으로 생성함
       synchronize: true, // nestjs에서 작성하는 typeorm 코드와 db의 싱크를 맞출거냐? 개발환경에선 true 프로덕션에서는 false
     }),

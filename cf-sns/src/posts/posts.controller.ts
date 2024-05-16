@@ -25,6 +25,7 @@ import { QueryRunner } from "src/common/decorator/query-runner.decorator";
 import { Roles } from "src/users/decorator/roles.decorator";
 import { RolesEnum } from "src/users/const/roles.const";
 import { IsPubblic } from "src/common/decorator/is-public.decorator";
+import { IsPostMineOrAdminGuard } from "./guard/is-post-mine-or-admin.guard";
 
 // 가장 맨 앞에서 요청을 받는 역할. 요청을 받는역할에 최적화 되어 있어야 한다.
 @Controller("posts")
@@ -106,9 +107,10 @@ export class PostsController {
 
   // 4) PATCH /posts/:id
   //    id에 해당되는 POST를 변경한다.
-  @Patch(":id")
+  @Patch(":postId")
+  @UseGuards(IsPostMineOrAdminGuard)
   patchPost(
-    @Param("id", ParseIntPipe) id: number,
+    @Param("postId", ParseIntPipe) id: number,
     // @Body("title") title?: string,
     // @Body("content") content?: string
     @Body() body: UpdatePostDto
